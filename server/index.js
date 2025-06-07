@@ -11,13 +11,36 @@ const { connectDB } = require("./db");
 dotenv.config();
 connectDB();
 
-app.use(cors());
+// Allowed origins array
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://safe-connect-g.vercel.app",
+];
+
+// Apply strict CORS middleware to Express
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like curl or postman)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
@@ -62,26 +85,21 @@ io.on("connection", (socket) => {
     io.to(to).emit("ice-candidate", { from: socket.id, candidate });
   });
 
-  // *** New Skip Partner Event ***
   socket.on("skip-partner", () => {
     const partnerId = userPartners[socket.id];
 
     if (partnerId) {
-      // Notify partner that they got skipped
       console.log(`${socket.id} skipped ${partnerId}`);
       io.to(partnerId).emit("partner-skipped");
 
-      // Remove pairing
       delete userPartners[partnerId];
       delete userPartners[socket.id];
 
-      // Put both users back in waiting list to find new partners
       waitingUsers.push(socket.id);
       waitingUsers.push(partnerId);
     }
   });
 
-  // Handle WebRTC offer/answer and ICE candidates
   socket.on("signal", ({ to, data }) => {
     io.to(to).emit("signal", { from: socket.id, data });
   });
@@ -89,13 +107,11 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
 
-    // Remove from waitingUsers if waiting
     const index = waitingUsers.indexOf(socket.id);
     if (index !== -1) {
       waitingUsers.splice(index, 1);
     }
 
-    // Notify partner if exists
     const partnerId = userPartners[socket.id];
     if (partnerId) {
       io.to(partnerId).emit("partner-disconnected");
