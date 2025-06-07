@@ -63,9 +63,9 @@ const SocketProvider = () => {
 
   return (
     <div style={{ maxWidth: 800, width: "100%", marginTop: 30 }}>
-      <h2 style={{ textAlign: "center", color: "#007bff" }}>
-        Connected as: <span style={{ fontWeight: "normal" }}>{socket.id}</span>
-      </h2>
+      {/* <h2 style={{ textAlign: "center", color: "#007bff" }}>
+        Connected as: <span style={{ fontWeight: "normal" }}>{"You"}</span>
+      </h2> */}
 
       {partnerId ? (
         <>
