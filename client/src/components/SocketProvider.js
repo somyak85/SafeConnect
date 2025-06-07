@@ -15,7 +15,10 @@ const SocketProvider = () => {
   const [statusMsg, setStatusMsg] = useState(null);
 
   useEffect(() => {
-    const newSocket = io(SOCKET_SERVER_URL);
+    const newSocket = io(SOCKET_SERVER_URL, {
+      transports: ["websocket", "polling"], // enable websocket and polling transports
+      withCredentials: true, // enable credentials if needed by backend
+    });
     setSocket(newSocket);
 
     newSocket.on("connect", () => {
