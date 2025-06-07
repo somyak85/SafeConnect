@@ -5,7 +5,8 @@ import ChatBox from "./ChatBox";
 import VideoCall from "./VideoCall";
 import SkipButton from "./SkipButton"; // <-- import here
 
-const SOCKET_SERVER_URL = "http://localhost:5000";
+const SOCKET_SERVER_URL =
+  process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
 
 const SocketProvider = () => {
   const [socket, setSocket] = useState(null);
